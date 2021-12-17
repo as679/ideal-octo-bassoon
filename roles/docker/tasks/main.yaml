@@ -2,6 +2,7 @@
 - name: Docker | Add repo
   yum_repository:
     name: Docker CE Stable - $basearch
+    description:
     baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
     gpgcheck: yes
     gpgkey: https://download.docker.com/linux/centos/gpg
