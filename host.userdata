@@ -8,3 +8,5 @@ yum_repos:
 packages:
   - git
   - ansible
+bootcmd:
+  - [ cloud-init-per, once, git, clone, https://github.com/as679/ideal-octo-bassoon.git, /opt/install ]
