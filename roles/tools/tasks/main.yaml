@@ -1,1 +1,40 @@
 ---
+- name: Tools | sudo | configure path
+  lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: '^Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin$'
+    line: 'Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin'
+    validate: /usr/sbin/visudo -cf %s
+- name: Tools | kubectl | Find lastest version
+  uri:
+    url: https://dl.k8s.io/release/stable.txt
+    return_content: yes
+  register: latest_kubectl
+- name: Tools | kubectl | Download latest
+  get_url:
+    url: "https://dl.k8s.io/release/{{ latest_kubectl.content }}/bin/linux/amd64/kubectl"
+    dest: /usr/local/bin/kubectl
+    mode: '0755'
+- name: Tools | Helm | Download helm
+  shell:
+    "curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash"
+- name: Tools | k9s | Down load k9s
+  get_url:
+    url: https://github.com/derailed/k9s/releases/download/v0.25.4/k9s_Linux_x86_64.tar.gz
+    dest: /tmp/k9s_Linux_x86_64.tar.gz
+- name: Tools | k9s | Extract k9s
+  unarchive:
+    src: /tmp/k9s_Linux_x86_64.tar.gz
+    dest: /usr/local/bin
+    remote_src: yes
+- name: Tools | Yum | Add packages
+  yum:
+    name:
+      - python39
+      - python39-pip
+- name: Tools | Pip | Install packages
+  pip:
+    name: "{{ item }}"
+  loop:
+    - kubernetes

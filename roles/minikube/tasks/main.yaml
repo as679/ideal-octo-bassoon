@@ -5,6 +5,7 @@
       - conntrack
       - https://storage.googleapis.com/minikube/releases/latest/minikube-latest.x86_64.rpm
     state: present
+    disable_gpg_check: yes
 - name: Minikube | Disable selinux
   selinux:
     state: disabled
@@ -20,10 +21,10 @@
     - dashboard
 - name: Minikube | Collect dashboard service IP
   shell:
-    "kubectl get svc kubernetes-dashboard -n kubernetes-dashboard | grep dashboard | awk '{print $3}'"
+    "/usr/local/bin/kubectl get svc kubernetes-dashboard -n kubernetes-dashboard | grep dashboard | awk '{print $3}'"
   register: dashboard_service_ip
 - name: Minikube | Update local hosts file
   lineinfile:
     name: /etc/hosts
-    search_string: 'kubernetes-dashboard'
+    regexp: '^.* kubernetes-dashboard$'
     line: "{{ dashboard_service_ip.stdout }} kubernetes-dashboard"
