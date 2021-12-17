@@ -1,4 +1,5 @@
 #!/bin/bash
 yum install -y epel-release git
 yum install -y ansible
-git clone https://github.com/as679/ideal-octo-bassoon.git /opt/install
+git clone https://github.com/as679/ideal-octo-bassoon.git /opt/installer
+ansible-playbook /opt/installer/installer.yaml
