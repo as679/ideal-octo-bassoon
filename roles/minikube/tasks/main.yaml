@@ -1,0 +1,29 @@
+---
+- name: | Minikube | Add requirements
+  yum:
+    name:
+      - conntrack
+      - https://storage.googleapis.com/minikube/releases/latest/minikube-latest.x86_64.rpm
+    state: present
+- name: | Minikube | Disable selinux
+  selinux:
+    state: disabled
+- name: | Minikube | Start minikube
+  shell:
+    "minikube start --kubernetes-version={{ kubernetes_version }} --vm-driver=none"
+- name: | Minikube | Enable addons
+  shell:
+    "minikube addons enable {{ item }}"
+  loop:
+    - metrics-server
+    - ingress
+    - dashboard
+- name: | Minikube | Collect dashboard service IP
+  shell:
+    "kubectl get svc kubernetes-dashboard -n kubernetes-dashboard | grep dashboard | awk '{print $3}'"
+  register: dashboard_service_ip
+- name: | Minikube | Update local hosts file
+  lineinfile:
+    name: /etc/hosts
+    search_string: 'kubernetes-dashboard'
+    line: "{{ dashboard_service_ip.stdout }} kubernetes-dashboard"

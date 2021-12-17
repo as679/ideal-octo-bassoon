@@ -1,0 +1,31 @@
+---
+- name: | Docker | Add repo
+  yum_repository:
+    name: Docker CE Stable - $basearch
+    baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
+    gpgcheck: yes
+    gpgkey: https://download.docker.com/linux/centos/gpg
+- name: | Docker | Install packages
+  yum:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+    state: present
+- name: | Docker | Create config directory
+  file:
+    name: /etc/docker
+    state: directory
+- name: | Docker | Copy docker config
+  copy:
+    src: daemon.json
+    dest: /etc/docker/daemon.json
+- name: | Docker | Restart the daemon
+  systemd:
+    name: docker
+    state: restarted
+- name: | Docker | Ensure group membership
+  user:
+    name: centos
+    groups: docker
+    append: yes
