@@ -38,3 +38,4 @@
     name: "{{ item }}"
   loop:
     - kubernetes
+    - openshift

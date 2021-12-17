@@ -1,0 +1,44 @@
+---
+- name: Operators | ECK | Install
+  kubernetes.core.k8s:
+    state: present
+    src: https://download.elastic.co/downloads/eck/1.3.2/all-in-one.yaml
+- name: Operators | Strimzi | Add helm repo
+  kubernetes.core.helm_repository:
+    name: strimzi
+    repo_url: "https://strimzi.io/charts/"
+- name: Operators | Strimzi | Add release
+  kubernetes.core.helm:
+    name: strimzi
+    chart_ref: strimzi/strimzi-kafka-operator
+    chart_version: 0.20.1
+    release_namespace: kafka-system
+    values:
+      watchNamespaces: [ ]
+      watchAnyNamespace: true
+- name: Operators | Prometheus | Add prometheus repo
+  kubernetes.core.helm_repository:
+    name: prometheus-community
+    repo_url: https://prometheus-community.github.io/helm-charts
+- name: Operators | Prometheus | Add stack release
+  kubernetes.core.helm:
+    name: prometheus
+    chart_ref: prometheus-community/kube-prometheus-stack
+    release_namespace: monitoring
+    values:
+      grafana:
+        ingress:
+          enabled: true
+          annotations:
+            kubernetes.io/ingress.class: nginx
+          hosts:
+            - "grafana.{{ domainname }}"
+- name: Operators | Grafana | Get local IP
+  shell:
+    "minikube ip"
+  register: minikube_ip
+- name: Operators | Grafana | Register local IP
+  lineinfile:
+    name: /etc/hosts
+    regexp: "^.* grafana.{{ domainname }}$"
+    line: "{{ minikube_ip.stdout }} grafana.{{ domainname }}"

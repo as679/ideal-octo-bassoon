@@ -1,5 +1,11 @@
 #!/bin/bash
+hostnamectl set-hostname mksentinel
+ip=`ip r | grep 'eth0 proto kernel scope link' | awk '{print $9}'`
+echo "$ip mksentinel" >> /etc/hosts
+yum update -y
 yum install -y epel-release git
 yum install -y ansible
 git clone https://github.com/as679/ideal-octo-bassoon.git /opt/installer
+cd /root
+ansible-galaxy collection install kubernetes.core
 ansible-playbook /opt/installer/installer.yaml
