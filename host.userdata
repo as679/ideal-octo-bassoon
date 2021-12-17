@@ -1,12 +1,4 @@
-yum_repos:
-  epel:
-    metalink: https://mirrors.fedoraproject.org/metalink?repo=epel-$releasever&arch=$basearch&infra=$infra&content=$contentdir
-    enabled: true
-    gpgcheck: true
-    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-8
-    name: Extra Packages for Enterprise Linux $releasever - $basearch
-packages:
-  - git
-  - ansible
-bootcmd:
-  - [ cloud-init-per, once, git, clone, https://github.com/as679/ideal-octo-bassoon.git, /opt/install ]
+#!/bin/bash
+yum install -y epel-release git
+yum install -y ansible
+git clone https://github.com/as679/ideal-octo-bassoon.git /opt/install
