@@ -3,13 +3,12 @@
   become: true
   vars:
     domainname: sentinel.cqsec.net
-    registry_host:
-      auths:
-        registry.gitlab.com:
-          username: adriansteer
-          password: glpat-xqx7_2ci27KyJFeCfQ9u
-          auth: YWRyaWFuc3RlZXI6Z2xwYXQteHF4N18yY2kyN0t5SkZlQ2ZROXUK
+    registry_host: registry.gitlab.com
+    registry_user: adriansteer
+    registry_pass: glpat-xqx7_2ci27KyJFeCfQ9u
   roles:
     - tools
     - docker
     - minikube
+    - operators
+    - sentinel

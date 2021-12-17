@@ -21,19 +21,13 @@
     api_version: v1
     kind: Namespace
     state: present
-- name: API Sentinel | Infra | Create auth
-  set_fact:
-    auth: "{{ auth | default({ 'auths': { {{ registry_host }}: { 'username': {{ registry_user }}, 'password': {{ registry_pass }}}}})}}"
 - name: API Sentinel | Infra | Create registry credentials
-  kubernetes.core.k8s:
-    apiVersion: v1
-    kind: Secret
-    type: kubernetes.io/dockerconfigjson
-    metadata:
-      name: regcred
-      namespace: sentinel
-    data:
-      .dockerconfigjson: "{{ registry_host | b64encode }}"
+  shell:
+    "kubectl create secret docker-registry regcred \
+    --docker-server={{ registry_host }} \
+    --docker-username={{ registry_user }} \
+    --docker-password={{ registry_pass }} \
+    --namespace=sentinel"
 - name: API Sentinel | Helm | Add helm repo
   kubernetes.core.helm_repository:
     name: cequence
@@ -69,13 +63,12 @@
         prometheus:
           operator:
             enabled: true
+        imagePullSecrets:
+          - name: regcred
       cq:
         apiEdge:
           enabled: true
           tlsRejectUnauthorized: true
-      keycloak:
-        imagePullSecrets:
-          - name: regcred
       strimzi-kafka-operator:
         enabled: false
       eck-operator:

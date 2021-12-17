@@ -19,7 +19,7 @@
 - name: Tools | Helm | Download helm
   shell:
     "curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash"
-- name: Tools | k9s | Down load k9s
+- name: Tools | k9s | Download k9s
   get_url:
     url: https://github.com/derailed/k9s/releases/download/v0.25.4/k9s_Linux_x86_64.tar.gz
     dest: /tmp/k9s_Linux_x86_64.tar.gz
