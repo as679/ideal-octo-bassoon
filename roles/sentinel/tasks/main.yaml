@@ -1,0 +1,92 @@
+---
+- name: API Sentinel | Infra | K8s DNS entries
+  shell:
+    "/usr/local/bin/update_coredns.py --ip {{ minikube_ip.stdout }} --fqdn {{ item }}.{{ domainname }}"
+  loop:
+    - edge
+    - auth
+    - sentinel
+- name: API Sentinel | Infra | Local hosts entries
+  lineinfile:
+    name: /etc/hosts
+    regexp: "^.* {{ item }}.{{ domainname }}$"
+    line: "{{ minikube_ip.stdout }} {{ item }}.{{ domainname }}"
+  loop:
+    - edge
+    - auth
+    - sentinel
+- name: API Sentinel | Infra | Create namespace
+  kubernetes.core.k8s:
+    name: sentinel
+    api_version: v1
+    kind: Namespace
+    state: present
+- name: API Sentinel | Infra | Create auth
+  set_fact:
+    auth: "{{ auth | default({ 'auths': { {{ registry_host }}: { 'username': {{ registry_user }}, 'password': {{ registry_pass }}}}})}}"
+- name: API Sentinel | Infra | Create registry credentials
+  kubernetes.core.k8s:
+    apiVersion: v1
+    kind: Secret
+    type: kubernetes.io/dockerconfigjson
+    metadata:
+      name: regcred
+      namespace: sentinel
+    data:
+      .dockerconfigjson: "{{ registry_host | b64encode }}"
+- name: API Sentinel | Helm | Add helm repo
+  kubernetes.core.helm_repository:
+    name: cequence
+    repo_url: "https://cequence.gitlab.io/helm-charts"
+- name: API Sentinel | Helm | Add release
+  kubernetes.core.helm:
+    name: api-sentinel
+    chart_ref: cequence/api-sentinel
+    release_namespace: sentinel
+    skip_crds: yes
+    values:
+      global:
+        imagePullSecret: regcred
+        hosts:
+          apiEdge:
+            name: "edge.{{ domainname }}"
+          auth:
+            name: "auth.{{ domainname }}"
+          sentinel:
+            name: "sentinel.{{ domainname }}"
+        serviceMonitor:
+          enabled: true
+          labels:
+            release: prometheus
+      prometheus-elasticsearch-exporter:
+        serviceMonitor:
+          enabled: true
+      kafka:
+        metrics:
+          serviceMonitor:
+            enabled: true
+      keycloak:
+        prometheus:
+          operator:
+            enabled: true
+      cq:
+        apiEdge:
+          enabled: true
+          tlsRejectUnauthorized: true
+      keycloak:
+        imagePullSecrets:
+          - name: regcred
+      strimzi-kafka-operator:
+        enabled: false
+      eck-operator:
+        enabled: false
+- name: API Sentinel | Fix | Patch servicemonitor
+  kubernetes.core.k8s:
+    state: patched
+    kind: servicemonitor
+    name: api-sentinel-prometheus-elasticsearch-exporter
+    namespace: sentinel
+    definition:
+      metadata:
+        labels:
+          release: prometheus

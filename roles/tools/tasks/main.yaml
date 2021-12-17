@@ -39,3 +39,10 @@
   loop:
     - kubernetes
     - openshift
+- name: Tools | Copy | files
+  copy:
+    src: "{{ item }}"
+    dest: "/usr/local/bin/{{ item }}"
+    mode: '0755'
+  loop:
+    - update_coredns.py

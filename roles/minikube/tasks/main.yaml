@@ -28,3 +28,7 @@
     name: /etc/hosts
     regexp: '^.* kubernetes-dashboard$'
     line: "{{ dashboard_service_ip.stdout }} kubernetes-dashboard"
+- name: Minikube | Collect local IP
+  shell:
+    "minikube ip"
+  register: minikube_ip

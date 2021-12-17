@@ -1,8 +1,12 @@
 ---
+- name: Operators | ECK | Download manifest
+  get_url:
+    url: https://download.elastic.co/downloads/eck/1.3.2/all-in-one.yaml
+    dest: /tmp/eck-all-in-one.yaml
 - name: Operators | ECK | Install
   kubernetes.core.k8s:
     state: present
-    src: https://download.elastic.co/downloads/eck/1.3.2/all-in-one.yaml
+    src: /tmp/eck-all-in-one.yaml
 - name: Operators | Strimzi | Add helm repo
   kubernetes.core.helm_repository:
     name: strimzi
@@ -16,6 +20,7 @@
     values:
       watchNamespaces: [ ]
       watchAnyNamespace: true
+    create_namespace: true
 - name: Operators | Prometheus | Add prometheus repo
   kubernetes.core.helm_repository:
     name: prometheus-community
@@ -33,10 +38,7 @@
             kubernetes.io/ingress.class: nginx
           hosts:
             - "grafana.{{ domainname }}"
-- name: Operators | Grafana | Get local IP
-  shell:
-    "minikube ip"
-  register: minikube_ip
+    create_namespace: true
 - name: Operators | Grafana | Register local IP
   lineinfile:
     name: /etc/hosts
