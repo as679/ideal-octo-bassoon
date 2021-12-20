@@ -12,9 +12,11 @@
 - name: Minikube | Start minikube
   shell:
     "minikube start --kubernetes-version={{ kubernetes_version }} --vm-driver=none"
+    chdir: /root
 - name: Minikube | Enable addons
   shell:
     "minikube addons enable {{ item }}"
+    chdir: /root
   loop:
     - metrics-server
     - ingress
