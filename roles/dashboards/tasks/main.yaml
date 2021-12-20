@@ -9,7 +9,7 @@
     "helm pull cequence/api-sentinel --version {{ sentinel_version }} --untar --untardir /tmp"
 - name: Dashboards | Pull Defender chart
   shell:
-    "helm pull cequence/api-sentinel --version {{ defender_version }} --untar --untardir /tmp"
+    "helm pull cequence/defender --version {{ defender_version }} --untar --untardir /tmp"
 - name: Dashboards | Create dashboards
   shell:
     "/usr/local/bin/create_dashboards.py \
