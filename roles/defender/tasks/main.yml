@@ -1,0 +1,81 @@
+---
+- name: Defender | Infra | Create namespace
+  kubernetes.core.k8s:
+    name: cequence-system
+    api_version: v1
+    kind: Namespace
+    state: present
+- name: Defender | Infra | Create registry credentials
+  shell:
+    "kubectl create secret docker-registry regcred \
+    --docker-server={{ aws_instance_tags.tags.registry_host | b64decode | trim }} \
+    --docker-username={{ aws_instance_tags.tags.registry_user | b64decode | trim }} \
+    --docker-password={{ aws_instance_tags.tags.registry_pass | b64decode | trim }} \
+    --namespace=cequence-system"
+- name: Defender | Infra | Create defender client
+  shell:
+    "/usr/local/bin/keycloak_client.py --clientname Defender --create"
+  register: defender_token
+- name: Defender | Helm | Install release
+  kubernetes.core.helm:
+    name: defender
+    chart_ref: cequence/defender
+    release_namespace: cequence-system
+    skip_crds: yes
+    values:
+      imagePullSecrets:
+        - name: regcred
+      config:
+        upstream:
+          config:
+            static:
+              http:
+                server: ingress-nginx-controller.ingress-nginx.svc.cluster.local
+              https:
+                server: ingress-nginx-controller.ingress-nginx.svc.cluster.local
+        appfw:
+          enabled: false
+        cqai:
+          enabled: false
+        logging:
+          level: info
+        sentinel:
+          pipelines:
+            - enabled: true
+              endpoint: "https://edge.{{ domainname }}/api-requests"
+              auth:
+                clientId: Defender
+                clientSecret: "{{ defender_token.stdout }}"
+                tokenUrl: "https://auth.{{ domainname }}/auth/realms/cequence/protocol/openid-connect/token"
+- name: Defender | Fix | Patch servicemonitor
+  kubernetes.core.k8s:
+    state: patched
+    kind: ServiceMonitor
+    name: api-sentinel-prometheus-elasticsearch-exporter
+    namespace: sentinel
+    definition:
+      metadata:
+        labels:
+          release: prometheus
+- name: Defender | Fix | Create Ingress
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        annotations:
+          kubernetes.io/ingress.class: nginx
+        name: defender
+        namespace: cequence-system
+      spec:
+        rules:
+        - host: "defender.{{ domainname }}"
+          http:
+            paths:
+            - backend:
+                service:
+                  name: defender
+                  port:
+                    number: 80
+              path: /
+              pathType: Prefix

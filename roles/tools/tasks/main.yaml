@@ -34,6 +34,7 @@
       - python39
       - python39-pip
       - unzip
+      - git
 - name: Tools | Pip | Install packages
   pip:
     name: "{{ item }}"

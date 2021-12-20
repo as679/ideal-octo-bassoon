@@ -10,3 +10,6 @@
     - minikube
     - operators
     - sentinel
+    - dashboards
+    - firefly
+    - defender

@@ -1,0 +1,17 @@
+---
+- name: Dashboards | Copy utility
+  copy:
+    src: create_dashboards.py
+    dest: /usr/local/bin/create_dashboards.py
+    mode: '0755'
+- name: Dashboards | Pull Sentinel chart
+  shell:
+    "helm pull cequence/api-sentinel --version {{ sentinel_version }} --untar --untardir /tmp"
+- name: Dashboards | Pull Defender chart
+  shell:
+    "helm pull cequence/api-sentinel --version {{ defender_version }} --untar --untardir /tmp"
+- name: Dashboards | Create dashboards
+  shell:
+    "/usr/local/bin/create_dashboards.py \
+    --sentinelpath /tmp/api-sentinel/files/grafana-dashboards/ \
+    --defenderpath /tmp/defender/grafana-dashboard/"
