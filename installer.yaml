@@ -2,10 +2,8 @@
 - hosts: localhost
   become: true
   vars:
+    cloud: aws
     domainname: sentinel.cqsec.net
-    registry_host: registry.gitlab.com
-    registry_user: adriansteer
-    registry_pass: glpat-xqx7_2ci27KyJFeCfQ9u
   roles:
     - tools
     - docker

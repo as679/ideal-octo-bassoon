@@ -24,9 +24,9 @@
 - name: API Sentinel | Infra | Create registry credentials
   shell:
     "kubectl create secret docker-registry regcred \
-    --docker-server={{ registry_host }} \
-    --docker-username={{ registry_user }} \
-    --docker-password={{ registry_pass }} \
+    --docker-server={{ aws_instance_tags.tags.registry_host | b64decode }} \
+    --docker-username={{ aws_instance_tags.tags.registry_user | b64decode }} \
+    --docker-password={{ aws_instance_tags.tags.registry_pass | b64decode }} \
     --namespace=sentinel"
 - name: API Sentinel | Helm | Add helm repo
   kubernetes.core.helm_repository:
@@ -76,7 +76,7 @@
 - name: API Sentinel | Fix | Patch servicemonitor
   kubernetes.core.k8s:
     state: patched
-    kind: servicemonitor
+    kind: ServiceMonitor
     name: api-sentinel-prometheus-elasticsearch-exporter
     namespace: sentinel
     definition:

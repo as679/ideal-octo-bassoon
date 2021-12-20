@@ -33,12 +33,14 @@
     name:
       - python39
       - python39-pip
+      - unzip
 - name: Tools | Pip | Install packages
   pip:
     name: "{{ item }}"
   loop:
     - kubernetes
     - openshift
+    - boto3
 - name: Tools | Copy | files
   copy:
     src: "{{ item }}"
@@ -46,3 +48,33 @@
     mode: '0755'
   loop:
     - update_coredns.py
+- name: Tools | Handle AWS | If required
+  block:
+  - name: Tools | AWSCLI | Download
+    get_url:
+      url: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+      dest: /tmp/awscliv2.zip
+  - name: Tools | AWSCLI | Extract
+    unarchive:
+      src: /tmp/awscliv2.zip
+      dest: /tmp
+      remote_src: yes
+  - name: Tools | AWSCLI | Install
+    shell:
+      "/tmp/aws/install"
+  - name: Tools | Instance | Collect instance-id
+    uri:
+      url: http://169.254.169.254/latest/meta-data/instance-id
+      return_content: yes
+    register: aws_instance_id
+  - name: Tools | Instance | Collect region
+    uri:
+      url: http://169.254.169.254/latest/meta-data/placement/region
+      return_content: yes
+    register: aws_region_id
+  - name: Tools | Instance | Collect tags
+    amazon.aws.ec2_tag_info:
+      region: "{{ aws_region_id.content }}"
+      resource: "{{ aws_instance_id.content }}"
+    register: aws_instance_tags
+  when: cloud == 'aws'

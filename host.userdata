@@ -8,4 +8,5 @@ yum install -y ansible
 git clone https://github.com/as679/ideal-octo-bassoon.git /opt/installer
 cd /root
 ansible-galaxy collection install kubernetes.core
-ansible-playbook /opt/installer/installer.yaml
+ansible-galaxy collection install amazon.aws
+#ansible-playbook /opt/installer/installer.yaml
